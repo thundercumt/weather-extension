@@ -1,0 +1,59 @@
+{
+  "name": "weather-extension",
+  "displayName": "Weather Extension",
+  "description": "A simple VSCode extension that returns today's weather",
+  "version": "1.0.0",
+  "publisher": "your-username",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:weather-extension.getWeather"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "weather-extension.getWeather",
+        "title": "Get Weather"
+      }
+    ],
+    "configuration": {
+      "title": "Weather Extension",
+      "properties": {
+        "weather-extension.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for WeatherAPI.com (only needed if using weatherapi provider)"
+        },
+        "weather-extension.provider": {
+          "type": "string",
+          "default": "wttrin",
+          "enum": ["weatherapi", "open-meteo", "wttrin"],
+          "enumDescriptions": [
+            "WeatherAPI.com (requires API key)",
+            "Open-Meteo (free, no key needed)",
+            "wttr.in (free, no key needed)"
+          ],
+          "description": "Weather data provider to use"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "vsce package",
+    "vscode:prepublish": "echo 'No build step needed'"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thundercumt/weather-extension.git"
+  }
+}
