@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { describe, it, before, after } = require('node:test');
-const { getCityFromGeoIP } = require('../src/extension.js');
+const { getCityFromGeoIP } = require('../src/geoip.js');
 
 describe('getCityFromGeoIP', () => {
   let originalFetch;

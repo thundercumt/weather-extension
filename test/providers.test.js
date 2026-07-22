@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { describe, it } = require('node:test');
-const { PROVIDERS } = require('../src/extension.js');
+const { PROVIDERS } = require('../src/weather.js');
 
 describe('wttr.in provider parsing', () => {
   const mockData = {

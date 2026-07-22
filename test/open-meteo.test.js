@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { describe, it, before, after } = require('node:test');
-const { fetchWeatherOpenMeteo } = require('../src/extension.js');
+const { fetchWeatherOpenMeteo } = require('../src/weather.js');
 
 describe('fetchWeatherOpenMeteo', () => {
   let originalFetch;

@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 const { describe, it } = require('node:test');
-const { formatWeatherForStatusBar } = require('../src/extension.js');
+const { formatWeatherForStatusBar } = require('../src/weather.js');
 
 describe('formatWeatherForStatusBar', () => {
   it('should extract city and temperature from WeatherAPI format', () => {

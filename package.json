@@ -10,11 +10,10 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onStartupFinished",
-    "onCommand:weather-extension.getWeather"
-  ],
   "main": "src/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
