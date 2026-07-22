@@ -1,25 +1,38 @@
 const assert = require('node:assert');
-const { describe, it } = require('node:test');
-const { PROVIDERS } = require('../src/weather.js');
+const { describe, it, before, after } = require('node:test');
+const { PROVIDERS, fetchWeatherOpenMeteo } = require('../src/weather.js');
 
-describe('wttr.in provider parsing', () => {
-  const mockData = {
-    current_condition: [{
-      temp_C: '18',
-      FeelsLikeC: '16',
-      weatherDesc: [{ value: 'Overcast' }],
-      humidity: '65',
-      windspeedKmph: '15',
-      winddir16Point: 'W'
-    }],
-    nearest_area: [{
-      areaName: [{ value: 'Paris' }],
-      country: [{ value: 'France' }]
-    }]
-  };
+describe('wttr.in provider fetch', () => {
+  let originalFetch;
 
-  it('should parse wttr.in weather data correctly', () => {
-    const result = PROVIDERS.wttrin.parseResponse(mockData);
+  before(() => {
+    originalFetch = global.fetch;
+  });
+
+  after(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('should format weather data correctly', async () => {
+    global.fetch = async () => ({
+      ok: true,
+      json: async () => ({
+        current_condition: [{
+          temp_C: '18',
+          FeelsLikeC: '16',
+          weatherDesc: [{ value: 'Overcast' }],
+          humidity: '65',
+          windspeedKmph: '15',
+          winddir16Point: 'W'
+        }],
+        nearest_area: [{
+          areaName: [{ value: 'Paris' }],
+          country: [{ value: 'France' }]
+        }]
+      })
+    });
+
+    const result = await PROVIDERS.wttrin.fetch('Paris');
     const lines = result.split('\n');
     assert.strictEqual(lines.length, 5);
     assert.ok(lines[0].includes('Paris'));
@@ -31,6 +44,19 @@ describe('wttr.in provider parsing', () => {
     assert.ok(lines[4].includes('15 km/h'));
     assert.ok(lines[4].includes('W'));
   });
+
+  it('should throw on HTTP error', async () => {
+    global.fetch = async () => ({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error'
+    });
+
+    await assert.rejects(
+      () => PROVIDERS.wttrin.fetch('Paris'),
+      { message: 'HTTP 500: Internal Server Error' }
+    );
+  });
 });
 
 describe('Open-Meteo provider metadata', () => {
@@ -38,12 +64,8 @@ describe('Open-Meteo provider metadata', () => {
     assert.strictEqual(PROVIDERS['open-meteo'].requiresKey, false);
   });
 
-  it('should have getUrl returning null', () => {
-    assert.strictEqual(PROVIDERS['open-meteo'].getUrl('London'), null);
-  });
-
-  it('should have parseResponse as null', () => {
-    assert.strictEqual(PROVIDERS['open-meteo'].parseResponse, null);
+  it('should have fetch bound to fetchWeatherOpenMeteo', () => {
+    assert.strictEqual(PROVIDERS['open-meteo'].fetch, fetchWeatherOpenMeteo);
   });
 });
 
@@ -51,6 +73,12 @@ describe('Provider metadata', () => {
   it('should list all providers', () => {
     const providerIds = Object.keys(PROVIDERS);
     assert.deepStrictEqual(providerIds.sort(), ['open-meteo', 'wttrin']);
+  });
+
+  it('each provider should have a fetch function', () => {
+    for (const id of Object.keys(PROVIDERS)) {
+      assert.strictEqual(typeof PROVIDERS[id].fetch, 'function', `Provider ${id} missing fetch function`);
+    }
   });
 
   it('should not require API key for any provider', () => {

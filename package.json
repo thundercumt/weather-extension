@@ -24,11 +24,6 @@
     "configuration": {
       "title": "Weather Extension",
       "properties": {
-        "weather-extension.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "API key for weather providers that require one"
-        },
         "weather-extension.provider": {
           "type": "string",
           "default": "wttrin",

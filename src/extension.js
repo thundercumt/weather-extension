@@ -5,7 +5,6 @@ const { fetchWeather } = require('./weather');
 async function fetchAndUpdateWeather(statusBarItem) {
   const config = vscode.workspace.getConfiguration('weather-extension');
   const providerId = config.get('provider', 'wttrin');
-  const apiKey = config.get('apiKey', '');
 
   // Detect city from IP to use as default
   const city = await getCityFromGeoIP();
@@ -14,7 +13,7 @@ async function fetchAndUpdateWeather(statusBarItem) {
   }
 
   try {
-    const formatted = await fetchWeather(city, providerId, apiKey);
+    const formatted = await fetchWeather(city, providerId);
     statusBarItem.text = formatted.text;
     statusBarItem.tooltip = formatted.tooltip;
   } catch {
@@ -52,35 +51,8 @@ function activate(context) {
   const refreshInterval = setInterval(() => fetchAndUpdateWeather(statusBarItem), 30 * 60 * 1000);
   context.subscriptions.push({ dispose: () => clearInterval(refreshInterval) });
 
-  const disposable = vscode.commands.registerCommand('weather-extension.getWeather', async function () {
-    const config = vscode.workspace.getConfiguration('weather-extension');
-    const providerId = config.get('provider', 'wttrin');
-    const apiKey = config.get('apiKey', '');
-    const { PROVIDERS } = require('./weather');
-    const provider = PROVIDERS[providerId];
-
-    if (!provider) {
-      vscode.window.showErrorMessage(`Unknown weather provider: ${providerId}`);
-      return;
-    }
-
-    if (provider.requiresKey && !apiKey) {
-      vscode.window.showErrorMessage(
-        `${provider.name} requires an API key. Set it in settings: weather-extension.apiKey, or switch to a free provider in settings: weather-extension.provider`
-      );
-      return;
-    }
-
-    // Detect city from IP to use as default
-    const city = await getCityFromGeoIP() || '';
-
-    try {
-      const formatted = await fetchWeather(city, providerId, apiKey);
-      statusBarItem.text = formatted.text;
-      statusBarItem.tooltip = formatted.tooltip;
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to fetch weather: ${error.message}`);
-    }
+  const disposable = vscode.commands.registerCommand('weather-extension.getWeather', function () {
+    fetchAndUpdateWeather(statusBarItem);
   });
 
   context.subscriptions.push(disposable);

@@ -2,17 +2,18 @@ const PROVIDERS = {
   'open-meteo': {
     name: 'Open-Meteo (free, no key needed)',
     requiresKey: false,
-    getUrl: (city) => {
-      // First geocode the city name to coordinates, then fetch weather
-      return null; // handled differently
-    },
-    parseResponse: null // handled differently
+    fetch: fetchWeatherOpenMeteo
   },
   'wttrin': {
     name: 'wttr.in (free, no key needed)',
     requiresKey: false,
-    getUrl: (city) => `https://wttr.in/${encodeURIComponent(city)}?format=j1`,
-    parseResponse: (data) => {
+    fetch: async (city) => {
+      const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
       const current = data.current_condition[0];
       const area = data.nearest_area[0];
       return [
@@ -67,29 +68,13 @@ function formatWeatherForStatusBar(message) {
   };
 }
 
-async function fetchWeather(city, providerId, apiKey) {
+async function fetchWeather(city, providerId) {
   const provider = PROVIDERS[providerId];
   if (!provider) {
     throw new Error(`Unknown weather provider: ${providerId}`);
   }
 
-  if (provider.requiresKey && !apiKey) {
-    throw new Error(`${provider.name} requires an API key`);
-  }
-
-  let message;
-  if (providerId === 'open-meteo') {
-    message = await fetchWeatherOpenMeteo(city);
-  } else {
-    const url = provider.getUrl(city, apiKey);
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    const data = await response.json();
-    message = provider.parseResponse(data);
-  }
-
+  const message = await provider.fetch(city);
   return formatWeatherForStatusBar(message);
 }
 
